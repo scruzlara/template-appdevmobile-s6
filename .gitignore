@@ -1,0 +1,30 @@
+# Dépendances
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environnement
+.env
+.env.local
+
+# Logs applicatifs (hors journal d'évaluation)
+*.log
+
+# Le journal d'évaluation NE doit PAS être dans .gitignore
+# journal/speckit-log.md est obligatoirement versionné
