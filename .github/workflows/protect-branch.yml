@@ -1,0 +1,55 @@
+name: Protection de branche — Dispositif évaluation
+
+# Se déclenche à chaque push sur main.
+# L'appel API est idempotent : relancer le workflow ne change rien si la
+# protection est déjà en place.
+on:
+  push:
+    branches: [main]
+
+# Permission explicite pour modifier les paramètres du dépôt.
+# À activer dans : Organisation → Settings → Actions → Workflow permissions
+# → "Read and write permissions"
+permissions:
+  contents: read
+  administration: write
+
+jobs:
+  protect-main:
+    name: Activer la protection de main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Protéger la branche main (interdire le force-push et la suppression)
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            try {
+              await github.rest.repos.updateBranchProtection({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                branch: 'main',
+                required_status_checks: null,
+                enforce_admins: false,
+                required_pull_request_reviews: null,
+                restrictions: null,
+                allow_force_pushes: false,
+                allow_deletions: false,
+                lock_branch: false,
+              });
+              console.log('✓ Branch protection activée sur main');
+              console.log('  - Force-push : interdit');
+              console.log('  - Suppression de branche : interdite');
+            } catch (error) {
+              // Si le token n'a pas les droits admin, on avertit sans faire échouer
+              // le workflow (pour ne pas bloquer le travail de l'étudiant)
+              if (error.status === 403) {
+                core.warning(
+                  'Impossible d\'activer la protection de branche : droits insuffisants. ' +
+                  'L\'enseignant doit activer manuellement "Read and write permissions" ' +
+                  'dans les paramètres Actions de l\'organisation.'
+                );
+              } else {
+                throw error;
+              }
+            }
