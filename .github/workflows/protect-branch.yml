@@ -1,8 +1,5 @@
 name: Protection de branche — Dispositif évaluation
 
-# Se déclenche à chaque push sur main.
-# L'appel API est idempotent : relancer le workflow ne change rien si la
-# protection est déjà en place.
 on:
   push:
     branches: [main]
@@ -11,18 +8,33 @@ jobs:
   protect-main:
     name: Activer la protection de main
     runs-on: ubuntu-latest
-    # Ne s'exécute que si le secret est disponible (dépôts étudiants dans l'org).
-    # Sur le template repo (compte personnel), le secret est absent : le job est ignoré.
-    if: ${{ secrets.EVAL_PROTECT_TOKEN != '' }}
     steps:
-      - name: Protéger la branche main (interdire le force-push et la suppression)
+      - name: Vérifier et activer la protection de branche
         uses: actions/github-script@v7
         with:
-          # EVAL_PROTECT_TOKEN : PAT avec scope "repo", stocké comme secret
-          # d'organisation dans IUTNancyCharlemagne.
-          # Voir SETUP-ENSEIGNANT.md pour la procédure de création.
           github-token: ${{ secrets.EVAL_PROTECT_TOKEN }}
           script: |
+            // Si le token est absent (dépôt template hors organisation), sortir proprement
+            if (!process.env.EVAL_PROTECT_TOKEN && '${{ secrets.EVAL_PROTECT_TOKEN }}' === '') {
+              console.log('Token absent — dépôt template, aucune action requise.');
+              return;
+            }
+
+            // Vérifier si la protection est déjà active
+            try {
+              await github.rest.repos.getBranchProtection({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                branch: 'main',
+              });
+              console.log('✓ Protection déjà active sur main — aucune action requise.');
+              return;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              // 404 = pas encore de protection, on continue
+            }
+
+            // Activer la protection
             await github.rest.repos.updateBranchProtection({
               owner: context.repo.owner,
               repo:  context.repo.repo,
@@ -35,6 +47,8 @@ jobs:
               allow_deletions: false,
               lock_branch: false,
             });
-            console.log('✓ Branch protection activée sur main');
+            console.log('✓ Protection activée sur main.');
             console.log('  - Force-push : interdit');
             console.log('  - Suppression de branche : interdite');
+        env:
+          EVAL_PROTECT_TOKEN: ${{ secrets.EVAL_PROTECT_TOKEN }}
