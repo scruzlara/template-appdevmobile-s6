@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # patch-speckit.sh — Injecte le bloc d'archivage d'évaluation dans les commandes speckit
+#                    et crée la commande /speckit.checkpoint pour chaque agent détecté
 # BUT S6 AppDevMobile 2025-2026
 #
 # Usage : bash scripts/patch-speckit.sh
@@ -10,23 +11,26 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BLOCK_FILE="$SCRIPT_DIR/archivage-block.md"
+CHECKPOINT_FILE="$SCRIPT_DIR/checkpoint-block.md"
 
 # Phases de workflow à patcher (on cherche ces mots dans les noms de fichiers)
 WORKFLOW_PHASES=("constitution" "specify" "plan" "tasks" "implement")
 
 # Marqueur pour ne pas patcher deux fois
 MARKER="ÉVALUATION — NE PAS MODIFIER NI SUPPRIMER"
+CHECKPOINT_MARKER="ÉVALUATION] Archivage de prompts"
 
 # Répertoires de commandes par agent
-# Format : "répertoire:type" (type = md ou toml)
+# Format : "répertoire:type:suffixe_checkpoint"
+# suffixe_checkpoint = extension + suffixe du nom de fichier checkpoint pour cet agent
 AGENT_DIRS=(
-    ".claude/commands:md"
-    ".github/agents:md"
-    ".codex/commands:md"
-    ".cursor/commands:md"
-    ".opencode/command:md"
-    ".gemini/commands:toml"
-    ".qwen/commands:toml"
+    ".claude/commands:md:speckit.checkpoint.md"
+    ".github/agents:md:speckit.checkpoint.agent.md"
+    ".codex/commands:md:speckit.checkpoint.md"
+    ".cursor/commands:md:speckit.checkpoint.md"
+    ".opencode/command:md:speckit.checkpoint.md"
+    ".gemini/commands:toml:speckit.checkpoint.md"
+    ".qwen/commands:toml:speckit.checkpoint.md"
 )
 
 echo "=== Patch dispositif d'évaluation AppDevMobile ==="
@@ -36,6 +40,7 @@ echo ""
 patched_count=0
 skipped_count=0
 notfound_count=0
+checkpoint_count=0
 
 patch_file() {
     local filepath="$1"
@@ -59,18 +64,32 @@ patch_file() {
     ((patched_count++)) || true
 }
 
+create_checkpoint() {
+    local full_dir="$1"
+    local checkpoint_filename="$2"
+    local checkpoint_path="$full_dir/$checkpoint_filename"
+
+    if [[ -f "$checkpoint_path" ]] && grep -q "$CHECKPOINT_MARKER" "$checkpoint_path" 2>/dev/null; then
+        echo "  [CHECKPOINT DÉJÀ CRÉÉ] $checkpoint_filename"
+        return
+    fi
+
+    cat "$CHECKPOINT_FILE" > "$checkpoint_path"
+    echo "  [CHECKPOINT CRÉÉ] $checkpoint_filename"
+    ((checkpoint_count++)) || true
+}
+
 # Pour chaque répertoire agent déclaré
 for entry in "${AGENT_DIRS[@]}"; do
-    dir="${entry%%:*}"
-    type="${entry##*:}"
+    IFS=':' read -r dir type checkpoint_filename <<< "$entry"
     full_dir="$REPO_ROOT/$dir"
 
     [[ -d "$full_dir" ]] || continue
 
     echo "Agent trouvé : $dir"
 
+    # Patcher les commandes de workflow
     for phase in "${WORKFLOW_PHASES[@]}"; do
-        # Chercher tout fichier dont le nom contient le nom de la phase
         found=0
         while IFS= read -r -d '' filepath; do
             patch_file "$filepath" "$phase"
@@ -82,13 +101,17 @@ for entry in "${AGENT_DIRS[@]}"; do
             ((notfound_count++)) || true
         fi
     done
+
+    # Créer la commande checkpoint
+    create_checkpoint "$full_dir" "$checkpoint_filename"
     echo ""
 done
 
 echo "=== Résultat ==="
-echo "  Fichiers patchés  : $patched_count"
-echo "  Déjà patchés      : $skipped_count"
-echo "  Non trouvés       : $notfound_count"
+echo "  Fichiers patchés       : $patched_count"
+echo "  Déjà patchés           : $skipped_count"
+echo "  Non trouvés            : $notfound_count"
+echo "  Commandes checkpoint   : $checkpoint_count"
 echo ""
 
 if [[ $patched_count -eq 0 && $skipped_count -eq 0 ]]; then
@@ -97,9 +120,9 @@ if [[ $patched_count -eq 0 && $skipped_count -eq 0 ]]; then
     exit 1
 fi
 
-if [[ $patched_count -gt 0 ]]; then
+if [[ $patched_count -gt 0 || $checkpoint_count -gt 0 ]]; then
     echo "Patch appliqué. Committez les changements :"
     echo "  git add ."
-    echo "  git commit -m \"eval: bloc d'archivage injecté dans les commandes speckit\""
+    echo "  git commit -m \"eval: bloc d'archivage et commande checkpoint injectés\""
     echo "  git push"
 fi
