@@ -11,6 +11,9 @@ jobs:
   protect-main:
     name: Activer la protection de main
     runs-on: ubuntu-latest
+    # Ne s'exécute que si le secret est disponible (dépôts étudiants dans l'org).
+    # Sur le template repo (compte personnel), le secret est absent : le job est ignoré.
+    if: ${{ secrets.EVAL_PROTECT_TOKEN != '' }}
     steps:
       - name: Protéger la branche main (interdire le force-push et la suppression)
         uses: actions/github-script@v7
