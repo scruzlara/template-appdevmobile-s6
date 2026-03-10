@@ -12,12 +12,18 @@ Avant de conclure cette phase, tu dois impérativement :
 
 **Étape 1 — Rédiger l'entrée du journal**
 
+Commence par récupérer la date et l'heure courantes en exécutant :
+
+```bash
+date "+%Y-%m-%d %H:%M"
+```
+
 Ouvre (ou crée) le fichier `journal/speckit-log.md` et ajoute une nouvelle entrée en respectant
-exactement ce format :
+exactement ce format, en remplaçant `TIMESTAMP` par le résultat de la commande ci-dessus :
 
 ```markdown
 ---
-### Phase : <NOM_DE_LA_PHASE> — <YYYY-MM-DD HH:MM>
+### Phase : <NOM_DE_LA_PHASE> — TIMESTAMP
 
 **Décisions prises :**
 - [décision 1 avec justification]
