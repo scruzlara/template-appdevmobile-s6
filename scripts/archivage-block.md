@@ -10,7 +10,20 @@
 
 Avant de conclure cette phase, tu dois impérativement :
 
-**Étape 1 — Rédiger l'entrée du journal**
+**Étape 1 — Demander à l'étudiant son degré de validation**
+
+Pose explicitement cette question à l'étudiant et attends sa réponse avant de continuer :
+
+> "Avant d'archiver cette phase, comment évalues-tu le résultat produit ?
+> 1. Résultat accepté sans modification
+> 2. Résultat modifié (décris brièvement ce que tu as changé)
+> 3. Résultat partiellement rejeté (décris ce que tu as rejeté et pourquoi)
+>
+> Ta réponse sera intégrée dans le journal."
+
+Utilise la réponse de l'étudiant pour remplir la rubrique "Degré de validation" de l'entrée.
+
+**Étape 2 — Rédiger l'entrée du journal**
 
 Commence par récupérer la date et l'heure courantes en exécutant :
 
@@ -39,9 +52,7 @@ exactement ce format, en remplaçant `TIMESTAMP` par le résultat de la commande
 - [...]
 
 **Degré de validation par l'étudiant :**
-- [ ] Résultat accepté sans modification
-- [ ] Résultat modifié (préciser : ...)
-- [ ] Résultat partiellement rejeté (préciser : ...)
+[réponse de l'étudiant à intégrer ici — voir étape 1]
 ```
 
 **Règles de rédaction :**
@@ -50,7 +61,7 @@ exactement ce format, en remplaçant `TIMESTAMP` par le résultat de la commande
 - Les alternatives écartées sont obligatoires dès qu'il y a eu un choix réel
 - Les prompts doivent être cités ou reformulés fidèlement, pas résumés vaguement
 
-**Étape 2 — Committer le journal**
+**Étape 3 — Committer le journal**
 
 ```bash
 git add journal/speckit-log.md
