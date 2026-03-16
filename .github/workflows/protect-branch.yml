@@ -8,6 +8,7 @@ jobs:
   protect-main:
     name: Activer la protection de main
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'IUTNancyCharlemagne'
     steps:
       - name: Vérifier et activer la protection de branche
         uses: actions/github-script@v7
