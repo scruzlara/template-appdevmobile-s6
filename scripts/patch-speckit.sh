@@ -24,13 +24,13 @@ CHECKPOINT_MARKER="ÉVALUATION] Archivage de prompts"
 # Format : "répertoire:type:suffixe_checkpoint"
 # suffixe_checkpoint = extension + suffixe du nom de fichier checkpoint pour cet agent
 AGENT_DIRS=(
-    ".claude/commands:md:speckit.checkpoint.md"
-    ".github/agents:md:speckit.checkpoint.agent.md"
-    ".codex/commands:md:speckit.checkpoint.md"
-    ".cursor/commands:md:speckit.checkpoint.md"
-    ".opencode/command:md:speckit.checkpoint.md"
-    ".gemini/commands:toml:speckit.checkpoint.md"
-    ".qwen/commands:toml:speckit.checkpoint.md"
+    ".claude/commands:md:checkpoint.md"
+    ".github/agents:md:checkpoint.agent.md"
+    ".codex/commands:md:checkpoint.md"
+    ".cursor/commands:md:checkpoint.md"
+    ".opencode/command:md:checkpoint.md"
+    ".gemini/commands:toml:checkpoint.md"
+    ".qwen/commands:toml:checkpoint.md"
 )
 
 echo "=== Patch dispositif d'évaluation AppDevMobile ==="
